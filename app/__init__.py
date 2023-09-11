@@ -7,7 +7,7 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'faskr.sqlite'),
+        SQLALCHEMY_DATABASE_URI="sqlite:///project.db"
     )
 
     # ensure the instance folder exists
@@ -17,9 +17,13 @@ def create_app():
         pass
 
     # G spots
-    from . import db, auth, views
+    from . import auth, views
+    from app.models import db
 
     db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
 
     # Views
     app.register_blueprint(auth.bp)

@@ -6,6 +6,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.models import User, db
+from app.forms import RegiserForm, LoginForm
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -14,57 +15,47 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 def register():
     """ Register User """
 
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        fname = request.form['fname']
-        lname = request.form['lname']
-        email = request.form['email']
-        error = None
+    form = RegiserForm()
 
-        # Validate User
-        if not username:
-            error = 'Username is required.'
-        elif not password:
-            error = 'Password is required.'
-        elif not fname:
-            error = 'fname is required.'
-        elif not lname:
-            error = 'lname is required.'
-        elif not lname:
-            error = 'lname is required.'
+    if request.method == 'POST' and form.validate():
 
-        # Register User
-        if error is None:
-            try:
-                new_user = User(
-                    username=username,
-                    lname=lname,
-                    fname=fname,
-                    email=email,
-                    password=generate_password_hash(password),
-                )
+        username = form.username.data
+        password = form.password.data
+        fname = form.fname.data
+        lname = form.lname.data
+        email = form.email.data
 
-                db.session.add(new_user)
-                db.session.commit()
+        try:
+            new_user = User(
+                username=username,
+                lname=lname,
+                fname=fname,
+                email=email,
+                password=generate_password_hash(password),
+            )
 
-            except db.IntegrityError:
-                error = f"User {username} is already registered."
-            else:
-                return redirect(url_for("auth.login"))
+            db.session.add(new_user)
+            db.session.commit()
+
+        except db.IntegrityError:
+            error = f"User {username} is already registered."
+        else:
+            return redirect(url_for("auth.login"))
 
         flash(error)
 
-    return render_template('auth/register.html')
+    return render_template('auth/register.html', form=form)
 
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     """ Login User """
 
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    form = LoginForm()
+
+    if request.method == 'POST' and form.validate():
+        username = form.username.data
+        password = form.password.data
         error = None
 
         user = User.query.filter_by(username=username).first()
@@ -83,7 +74,7 @@ def login():
 
         flash(error)
 
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', form=form)
 
 
 @bp.before_app_request

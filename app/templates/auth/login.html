@@ -5,13 +5,14 @@
 {% endblock %}
 
 {% block content %}
-<form action="/auth/login" method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-
-    <input type="submit" value="Log In">
+<form action="{{ url_for('auth.login') }}" method="post">
+    <table>
+    {% for field in form %}
+        <tr>
+            <th>{{ field.label }}</th>
+            <td>{{ field }}</td>
+        </tr>
+    {% endfor %}
+    </table>
 </form>
 {% endblock %}
